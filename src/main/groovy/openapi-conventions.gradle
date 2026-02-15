@@ -6,6 +6,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 }
 
+// Create extension for OpenAPI configuration
 project.extensions.add('openapiConventions', [serverUrl: 'http://localhost:8080'])
 
 def taskClass = project.buildscript.classLoader.loadClass('org.openapitools.generator.gradle.plugin.tasks.GenerateTask')
@@ -36,15 +37,18 @@ tasks.register('generateJavaClient', taskClass) {
 
 tasks.register('exportOpenApiSpec') {
     group = 'documentation'
+    description = 'Exports OpenAPI spec from running server (run bootRun separately first)'
+    def serverUrl = project.extensions.openapiConventions.serverUrl
     def specFile = file("${projectDir}/openapi-spec.json")
+
     doLast {
-        def serverUrl = project.extensions.openapiConventions.serverUrl
-        specFile.text = new URL("${serverUrl}/v3/api-docs").text
-    }
-}
-afterEvaluate {
-    tasks.named('exportOpenApiSpec').configure {
-        dependsOn tasks.named('bootRun')
+        try {
+            def url = new URI("${serverUrl}/v3/api-docs").toURL()
+            specFile.text = url.openConnection().getInputStream().getText('UTF-8')
+            logger.lifecycle("Exported OpenAPI spec from ${serverUrl}/v3/api-docs")
+        } catch (Exception e) {
+            throw new GradleException("Failed to fetch spec from ${serverUrl}/v3/api-docs. Is the server running? (gradle bootRun)\nError: ${e.message}")
+        }
     }
 }
 
