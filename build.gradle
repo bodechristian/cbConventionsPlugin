@@ -12,9 +12,9 @@ repositories {
 }
 
 dependencies {
-    // Use a newer version of dependency management plugin compatible with Gradle 8+
     implementation libs.spring.boot.gradle.plugin
     implementation libs.dependency.management.plugin
+    implementation libs.openapi.generator.gradle.plugin
 }
 
 publishing {
@@ -30,6 +30,10 @@ gradlePlugin {
         javaConventions {
             id = 'org.example.java-conventions'
             implementationClass = 'org.example.conventions.JavaConventionsPlugin'
+        }
+        openapiConventions {
+            id = 'org.example.openapi-conventions'
+            implementationClass = 'org.example.conventions.OpenapiConventionsPlugin'
         }
     }
 }

@@ -1,9 +1,11 @@
 [versions]
 springBoot = "4.0.2"
 dependencyManagement = "1.1.7"
+openapi-generator = "7.2.0"
 
 [libraries]
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
 dependency-management-plugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "dependencyManagement" }
+openapi-generator-gradle-plugin = { module = "org.openapitools:openapi-generator-gradle-plugin", version.ref = "openapi-generator" }
 
 [plugins]

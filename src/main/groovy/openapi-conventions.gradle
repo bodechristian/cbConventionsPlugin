@@ -1,0 +1,56 @@
+plugins {
+    id 'org.openapi.generator'
+}
+
+dependencies {
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+}
+
+project.extensions.add('openapiConventions', [serverUrl: 'http://localhost:8080'])
+
+def taskClass = project.buildscript.classLoader.loadClass('org.openapitools.generator.gradle.plugin.tasks.GenerateTask')
+
+tasks.register('generateTypeScriptClient', taskClass) {
+    group = 'code generation'
+    generatorName = 'typescript-fetch'
+    inputSpec = "${projectDir}/openapi-spec.json"
+    outputDir = "${rootProject.projectDir}/frontend/api-client"
+    configOptions = [
+        supportsES6: 'true',
+        withInterfaces: 'true'
+    ]
+}
+
+tasks.register('generateJavaClient', taskClass) {
+    group = 'code generation'
+    generatorName = 'java'
+    inputSpec = "${projectDir}/openapi-spec.json"
+    outputDir = "${rootProject.projectDir}/backend/generated-client"
+    apiPackage = 'com.middle.api.client'
+    modelPackage = 'com.middle.api.model'
+    configOptions = [
+        library: 'okhttp-gson',
+        dateLibrary: 'java8'
+    ]
+}
+
+tasks.register('exportOpenApiSpec') {
+    group = 'documentation'
+    def specFile = file("${projectDir}/openapi-spec.json")
+    doLast {
+        def serverUrl = project.extensions.openapiConventions.serverUrl
+        specFile.text = new URL("${serverUrl}/v3/api-docs").text
+    }
+}
+afterEvaluate {
+    tasks.named('exportOpenApiSpec').configure {
+        dependsOn tasks.named('bootRun')
+    }
+}
+
+tasks.register('generateAllClients') {
+    group = 'code generation'
+    dependsOn exportOpenApiSpec, generateTypeScriptClient, generateJavaClient
+    generateTypeScriptClient.mustRunAfter exportOpenApiSpec
+    generateJavaClient.mustRunAfter exportOpenApiSpec
+}
